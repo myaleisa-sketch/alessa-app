@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <title>مشاريع العيسى</title>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json" id="mf">
+<script>
+  // آيفون: بلا manifest يحفظ Safari الرابط الحالي (ومعه رمز المنصة #k=) في أيقونة الشاشة الرئيسية،
+  // فيفتح التطبيق المثبّت مباشرة دون طلب الرابط. أندرويد يبقى على manifest (ذاكرته مشتركة مع Chrome).
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))
+    document.getElementById('mf').remove();
+</script>
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="theme-color" content="#EEF1F4">
 <meta name="mobile-web-app-capable" content="yes">
@@ -48,13 +54,20 @@
   function saveLink(){
     const id = parseId(document.getElementById('lnk').value);
     if (!id) { document.getElementById('err').textContent = 'الرابط غير صحيح، انسخه كاملًا من الرسالة'; return; }
-    store.set(id); start(id);
+    store.set(id); keepInUrl(id); start(id);
   }
-  // رابط الإعداد: .../#k=المعرّف  (يُحفظ ثم يُمسح من شريط العنوان)
+  // رابط الإعداد: .../#k=المعرّف — يضبط التطبيق في أي متصفح دون لصق، ويبقى في شريط العنوان عمدًا
+  // حتى تحفظه أيقونة آيفون عند «إضافة إلى الشاشة الرئيسية»
   const h = location.hash.match(/^#k=(.+)$/);
-  if (h && parseId(h[1])) { store.set(parseId(h[1])); history.replaceState(null, '', location.pathname); }
+  if (h && parseId(h[1])) store.set(parseId(h[1]));
   const id = store.get();
-  if (id) start(id); else document.getElementById('setup').style.display = 'block';
+  if (id) { keepInUrl(id); start(id); } else document.getElementById('setup').style.display = 'block';
+  // إن أُضيف الرابط بعد فتح الصفحة (بعض المتصفحات وتطبيقات المراسلة تفعل ذلك) يُلتقط ويُعاد التحميل
+  addEventListener('hashchange', () => {
+    const m = location.hash.match(/^#k=(.+)$/), v = m && parseId(m[1]);
+    if (v && v !== store.get()) { store.set(v); location.reload(); }
+  });
+  function keepInUrl(v){ if (location.hash !== '#k=' + v) history.replaceState(null, '', location.pathname + '#k=' + v); }
 
   const off = document.getElementById('off');
   function chk(){ off.style.display = navigator.onLine ? 'none' : 'block'; }
