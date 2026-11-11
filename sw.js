@@ -1,5 +1,5 @@
 // يخزّن غلاف التطبيق فقط (الصفحة والأيقونات). بيانات المنصة المالية لا تُخزَّن أبدًا.
-const CACHE = 'alessa-shell-v4';
+const CACHE = 'alessa-shell-v5';
 const SHELL = ['./index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
